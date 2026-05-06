@@ -36,15 +36,18 @@ export async function fetchAnnotations(url: string): Promise<AnnotationRow[]> {
   }
 }
 
-export async function saveAnnotation(annotation: NewAnnotation): Promise<void> {
+export async function saveAnnotation(annotation: NewAnnotation): Promise<AnnotationRow | null> {
   try {
-    await fetch(`${SUPABASE_URL}/rest/v1/annotations`, {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/annotations`, {
       method: 'POST',
-      headers: { ...HEADERS, Prefer: 'return=minimal' },
+      headers: { ...HEADERS, Prefer: 'return=representation' },
       body: JSON.stringify(annotation),
     });
+    if (!res.ok) return null;
+    const [row] = await res.json() as AnnotationRow[];
+    return row ?? null;
   } catch {
-    // fail silently — annotation shown locally even if save fails
+    return null;
   }
 }
 

@@ -17,8 +17,10 @@ export default defineContentScript({
     let canvas: InstanceType<FabricModule['Canvas']> | null = null;
     let containerEl: HTMLElement | null = null;
     let toolbarHostEl: HTMLElement | null = null;
+    let loadedRows: AnnotationRow[] = [];
     let annotationCount = 0;
     let isEditingText = false;
+    let resizeTimer: ReturnType<typeof setTimeout>;
     let currentColor = COLORS[0];
     let currentSize: number = 4;
     let currentTool: 'draw' | 'text' = 'draw';
@@ -34,7 +36,6 @@ export default defineContentScript({
         } else {
           activate().catch(console.error);
         }
-        // Response is sent after async activate in next tick — use a flag
         setTimeout(() => sendResponse({ active: isActive, count: annotationCount }), 50);
       }
       return true;
@@ -44,17 +45,12 @@ export default defineContentScript({
 
     async function activate() {
       isActive = true;
-
-      if (!fab) {
-        fab = await import('fabric');
-      }
-
+      if (!fab) fab = await import('fabric');
       if (!containerEl) {
         createCanvas();
         createToolbar();
         await loadAnnotations();
       }
-
       setOverlayVisible(true);
     }
 
@@ -68,25 +64,69 @@ export default defineContentScript({
       if (toolbarHostEl) toolbarHostEl.style.display = visible ? 'block' : 'none';
     }
 
+    // --- Annotation data helpers ---
+
+    // Wraps Fabric.js JSON with the canvas dimensions it was drawn at,
+    // so we can scale correctly when the viewport differs on load.
+    function wrapWithDimensions(fabricJson: Record<string, unknown>): Record<string, unknown> {
+      return {
+        fabricData: fabricJson,
+        canvasWidth: canvas?.width ?? window.innerWidth,
+        canvasHeight: canvas?.height ?? window.innerHeight,
+      };
+    }
+
+    function parseAnnotationData(data: Record<string, unknown>) {
+      if ('fabricData' in data) {
+        return {
+          fabricData: data.fabricData as Record<string, unknown>,
+          storedW: data.canvasWidth as number | null,
+          storedH: data.canvasHeight as number | null,
+        };
+      }
+      // Legacy format: no dimensions stored, render as-is
+      return { fabricData: data, storedW: null, storedH: null };
+    }
+
+    // Scales Fabric.js serialized object proportionally to the current canvas size.
+    function scaleFabricData(
+      data: Record<string, unknown>,
+      ratioX: number,
+      ratioY: number,
+    ): Record<string, unknown> {
+      const d = { ...data };
+      if (typeof d.left === 'number')     d.left     = d.left     * ratioX;
+      if (typeof d.top === 'number')      d.top      = d.top      * ratioY;
+      if (typeof d.scaleX === 'number')   d.scaleX   = d.scaleX   * ratioX;
+      if (typeof d.scaleY === 'number')   d.scaleY   = d.scaleY   * ratioY;
+      if (typeof d.fontSize === 'number') d.fontSize = d.fontSize * Math.min(ratioX, ratioY);
+      return d;
+    }
+
     // --- Canvas ---
+
+    function getPageDimensions() {
+      return {
+        w: window.innerWidth,
+        h: Math.max(
+          document.body.scrollHeight,
+          document.documentElement.scrollHeight,
+          window.innerHeight,
+        ),
+      };
+    }
 
     function createCanvas() {
       if (!fab) return;
-
-      const pageH = Math.max(
-        document.body.scrollHeight,
-        document.documentElement.scrollHeight,
-        window.innerHeight,
-      );
-      const pageW = window.innerWidth;
+      const { w, h } = getPageDimensions();
 
       containerEl = document.createElement('div');
       Object.assign(containerEl.style, {
         position: 'absolute',
         top: '0',
         left: '0',
-        width: `${pageW}px`,
-        height: `${pageH}px`,
+        width: `${w}px`,
+        height: `${h}px`,
         pointerEvents: 'none',
         zIndex: '2147483646',
         overflow: 'hidden',
@@ -94,15 +134,11 @@ export default defineContentScript({
       document.body.appendChild(containerEl);
 
       const canvasEl = document.createElement('canvas');
-      canvasEl.width = pageW;
-      canvasEl.height = pageH;
+      canvasEl.width = w;
+      canvasEl.height = h;
       containerEl.appendChild(canvasEl);
 
-      canvas = new fab.Canvas(canvasEl, {
-        selection: false,
-        enableRetinaScaling: false,
-      });
-
+      canvas = new fab.Canvas(canvasEl, { selection: false, enableRetinaScaling: false });
       applyBrush();
 
       // Forward wheel events so page scrolling still works
@@ -117,12 +153,13 @@ export default defineContentScript({
         path.set({ selectable: false, evented: false, hasControls: false });
         canvas?.renderAll();
         const token = await getOrCreateSessionToken();
-        await saveAnnotation({
+        const row = await saveAnnotation({
           url: normalizeUrl(window.location.href),
-          data: path.toJSON() as Record<string, unknown>,
+          data: wrapWithDimensions(path.toJSON() as Record<string, unknown>),
           type: 'drawing',
           session_token: token,
         });
+        if (row) loadedRows.push(row);
         annotationCount++;
       });
 
@@ -152,17 +189,31 @@ export default defineContentScript({
             text.set({ selectable: false, evented: false, hasControls: false });
             canvas?.renderAll();
             const token = await getOrCreateSessionToken();
-            await saveAnnotation({
+            const row = await saveAnnotation({
               url: normalizeUrl(window.location.href),
-              data: text.toJSON() as Record<string, unknown>,
+              data: wrapWithDimensions(text.toJSON() as Record<string, unknown>),
               type: 'text',
               session_token: token,
             });
+            if (row) loadedRows.push(row);
             annotationCount++;
           } else {
             canvas?.remove(text);
           }
         });
+      });
+
+      // On resize: resize the canvas and re-render stored annotations with new ratios
+      window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(async () => {
+          if (!containerEl || !canvas) return;
+          const { w: newW, h: newH } = getPageDimensions();
+          containerEl.style.width = `${newW}px`;
+          containerEl.style.height = `${newH}px`;
+          canvas.setDimensions({ width: newW, height: newH });
+          await renderAnnotations(loadedRows);
+        }, 250);
       });
     }
 
@@ -177,27 +228,42 @@ export default defineContentScript({
       }
     }
 
-    // --- Load existing annotations ---
+    // --- Annotation loading & rendering ---
 
     async function loadAnnotations() {
       if (!canvas || !fab) return;
-      const url = normalizeUrl(window.location.href);
-      const rows: AnnotationRow[] = await fetchAnnotations(url);
-      annotationCount = rows.length;
+      loadedRows = await fetchAnnotations(normalizeUrl(window.location.href));
+      annotationCount = loadedRows.length;
+      await renderAnnotations(loadedRows);
+    }
 
+    async function renderAnnotations(rows: AnnotationRow[]) {
+      if (!canvas || !fab) return;
+      canvas.clear();
       for (const row of rows) {
-        try {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const [obj] = (await fab.util.enlivenObjects([row.data as any])) as any[];
-          if (!obj) continue;
-          obj.set({ selectable: false, evented: false, hasControls: false, hasBorders: false });
-          canvas.add(obj);
-        } catch (err) {
-          console.warn('[Chalk] Could not load annotation:', err);
-        }
+        await renderAnnotation(row);
       }
-
       canvas.renderAll();
+      applyBrush();
+    }
+
+    async function renderAnnotation(row: AnnotationRow) {
+      if (!canvas || !fab) return;
+      try {
+        const { fabricData, storedW, storedH } = parseAnnotationData(row.data);
+        const currentW = canvas.width!;
+        const currentH = canvas.height!;
+        const ratioX = storedW ? currentW / storedW : 1;
+        const ratioY = storedH ? currentH / storedH : 1;
+        const scaled = scaleFabricData(fabricData, ratioX, ratioY);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const [obj] = (await fab.util.enlivenObjects([scaled as any])) as any[];
+        if (!obj) return;
+        obj.set({ selectable: false, evented: false, hasControls: false, hasBorders: false });
+        canvas.add(obj);
+      } catch (err) {
+        console.warn('[Chalk] Could not load annotation:', err);
+      }
     }
 
     // --- Toolbar ---
@@ -272,7 +338,6 @@ export default defineContentScript({
         </div>
       `;
 
-      // Color swatches
       const swatchContainer = shadow.getElementById('swatches')!;
       swatchContainer.style.cssText = 'display:flex;flex-direction:column;gap:4px;align-items:center;';
       for (const color of COLORS) {
@@ -291,7 +356,6 @@ export default defineContentScript({
         swatchContainer.appendChild(s);
       }
 
-      // Tool buttons
       shadow.getElementById('btn-draw')!.addEventListener('click', () => {
         currentTool = 'draw';
         applyBrush();
@@ -306,7 +370,6 @@ export default defineContentScript({
         shadow.getElementById('btn-draw')!.classList.remove('active');
       });
 
-      // Size buttons
       shadow.querySelectorAll<HTMLButtonElement>('[data-size]').forEach(btn => {
         btn.addEventListener('click', () => {
           currentSize = parseInt(btn.dataset.size!);
@@ -316,7 +379,6 @@ export default defineContentScript({
         });
       });
 
-      // Close
       shadow.getElementById('btn-close')!.addEventListener('click', () => deactivate());
 
       document.body.appendChild(toolbarHostEl);
