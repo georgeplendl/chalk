@@ -97,9 +97,12 @@ export default defineContentScript({
       const d = { ...data };
       if (typeof d.left === 'number')     d.left     = d.left     * ratioX;
       if (typeof d.top === 'number')      d.top      = d.top      * ratioY;
+      // Scale shape uniformly by ratioX to preserve aspect ratio.
+      // ratioY differs from ratioX when height changes independently of width,
+      // which would skew shapes (a square becomes a tall rectangle, etc.).
       if (typeof d.scaleX === 'number')   d.scaleX   = d.scaleX   * ratioX;
-      if (typeof d.scaleY === 'number')   d.scaleY   = d.scaleY   * ratioY;
-      if (typeof d.fontSize === 'number') d.fontSize = d.fontSize * Math.min(ratioX, ratioY);
+      if (typeof d.scaleY === 'number')   d.scaleY   = d.scaleY   * ratioX;
+      if (typeof d.fontSize === 'number') d.fontSize = d.fontSize * ratioX;
       return d;
     }
 
