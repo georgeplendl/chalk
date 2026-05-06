@@ -1,7 +1,7 @@
 # Product Requirements Document
-## Tag — A Social Graffiti Layer for the Web
+## Chalk — A Social Graffiti Layer for the Web
 
-**Version:** 0.2 (Draft)
+**Version:** 0.3 (Draft)
 **Date:** 2026-05-06
 **Status:** Discovery
 
@@ -11,7 +11,7 @@
 
 The web is a read-only experience for most users. People consume content on millions of websites with no native way to react to, annotate, or converse around the specific content they're looking at — without leaving the page and going to a separate platform. Forums, Discord servers, and subreddits all require context-switching. There is no persistent, shared social layer that lives *on top of* the web itself.
 
-**Tag** puts that layer there.
+**Chalk** puts that layer there.
 
 ---
 
@@ -59,8 +59,8 @@ These are the minimum features required for a useful first release.
 - Toggle on/off with a hotkey or toolbar button
 - Both the extension and the userscript (see 5.7) share the same backend API — they are two clients, not two products
 
-### 5.2 Page Tagging Notification
-- When a user navigates to a URL that has existing annotations, a notification appears: *"This page has been tagged — X annotations"*
+### 5.2 Page Chalk Notification
+- When a user navigates to a URL that has existing annotations, a notification appears: *"This page has been chalked — X annotations"*
 - User can click to reveal the annotation layer
 - **Extension:** notification appears as a badge on the toolbar icon plus an in-page toast
 - **Userscript:** in-page banner injected at page load (same experience, no toolbar badge)
@@ -89,13 +89,13 @@ These are the minimum features required for a useful first release.
 - Persistent anonymous sessions via local token (no forced login)
 
 ### 5.7 Distribution & Resilience
-Tag is distributed through multiple channels so that no single gatekeeper can kill access. Dissenter was destroyed in six weeks because it had one distribution path. Tag will have four:
+Chalk is distributed through multiple channels so that no single gatekeeper can kill access. Dissenter was destroyed in six weeks because it had one distribution path. Chalk will have four:
 
 | Channel | How to get it | Censor resistance |
 |---|---|---|
 | **Chrome Web Store** | One-click install | Low — Google can pull it |
 | **Firefox Add-ons** | One-click install | Low — Mozilla can pull it |
-| **Direct sideload** | Download .crx / .xpi from tag's own site | Medium — requires manual install, works as long as site is up |
+| **Direct sideload** | Download .crx / .xpi from Chalk's own site | Medium — requires manual install, works as long as site is up |
 | **Userscript** | Install via Tampermonkey / Violentmonkey from GitHub raw URL or Greasy Fork | High — no central store, self-distributing |
 
 **Userscript specifics:**
@@ -103,7 +103,7 @@ Tag is distributed through multiple channels so that no single gatekeeper can ki
 - Compatible with Tampermonkey (Chrome, Firefox, Edge, Safari), Violentmonkey (Chrome, Firefox), and Greasemonkey (Firefox)
 - Uses `GM_xmlhttpRequest` for API calls to bypass CORS restrictions without browser extension permissions
 - Uses `GM_getValue` / `GM_setValue` for local session storage
-- Auto-updates via `@updateURL` and `@downloadURL` metadata — Tag controls its own update delivery without going through a store review process
+- Auto-updates via `@updateURL` and `@downloadURL` metadata — Chalk controls its own update delivery without going through a store review process
 - Hosted on GitHub (raw URL) and Greasy Fork; self-hosted mirror as backup
 - Feature parity with the extension except for the browser toolbar badge (in-page banner substitutes)
 
@@ -244,9 +244,9 @@ Gab's Dissenter was technically identical to Tag's core concept — URL-based an
 
 Because Dissenter launched under Gab's brand (a known far-right platform), it attracted extremists first. Hate speech, racism, and targeted harassment flooded the comment sections before any mainstream users arrived. The product never recovered from that first-mover audience. Chrome and Mozilla both cited hate speech policy violations.
 
-**What this means for Tag:**
+**What this means for Chalk:**
 
-- **Brand neutrality is a survival requirement.** Tag must not position itself as a free speech platform, a censorship-free zone, or any framing that signals to bad-faith actors that this is their place. Those words are a bat signal. The product's identity should be playful, creative, and fun — graffiti art, not political speech.
+- **Brand neutrality is a survival requirement.** Chalk must not position itself as a free speech platform, a censorship-free zone, or any framing that signals to bad-faith actors that this is their place. Those words are a bat signal. The product's identity should be playful, creative, and fun — graffiti art, not political speech.
 - **Seed the right community first.** The first 1,000 users shape the culture. Identify artists, meme creators, and playful internet communities to onboard early — not ideological movements.
 - **Public-facing content must be defensible.** The trending feed, the homepage, and any curated content shown to new users must represent the product at its best. One viral screenshot of extreme content will define press coverage.
 - **Moderation is a product feature, not a political stance.** Frame it as keeping the platform fun and worth using, not as ideological enforcement. Rules should read like a skate park's rules — no blood, no politics, keep it creative.
@@ -286,7 +286,7 @@ Because Dissenter launched under Gab's brand (a known far-right platform), it at
 - **Launch browser:** Chrome first due to market share; Manifest V3 compliance required
 - **Team:** Assumed small founding team; scope is deliberately constrained for MVP
 - **Anonymity:** Platform must function without any account — this is a product promise to the core audience
-- **Chrome Web Store risk (critical):** Google and Mozilla can remove the extension from their stores without appeal. Dissenter was pulled within 6 weeks of launch. Tag mitigates this through a four-channel distribution strategy (store → sideload → userscript → Greasy Fork). The userscript is the highest-resilience fallback — it requires no store approval, updates are self-hosted, and it works on any browser with Tampermonkey or Violentmonkey installed. A store ban should be a setback, not a kill shot.
+- **Chrome Web Store risk (critical):** Google and Mozilla can remove the extension from their stores without appeal. Dissenter was pulled within 6 weeks of launch. Chalk mitigates this through a four-channel distribution strategy (store → sideload → userscript → Greasy Fork). The userscript is the highest-resilience fallback — it requires no store approval, updates are self-hosted, and it works on any browser with Tampermonkey or Violentmonkey installed. A store ban should be a setback, not a kill shot.
 
 ---
 
@@ -294,7 +294,7 @@ Because Dissenter launched under Gab's brand (a known far-right platform), it at
 
 ### 12.1 Dissenter by Gab — Closest Predecessor (Defunct)
 
-| Attribute | Dissenter | Tag |
+| Attribute | Dissenter | Chalk |
 |---|---|---|
 | Concept | URL-based comment sidebar on any webpage | URL-based annotation canvas on any webpage |
 | Launch | February 2019 | TBD |
@@ -328,7 +328,7 @@ Users currently go off-page to Reddit threads or Discord servers to discuss web 
 
 ## 13. Open Questions
 
-- [ ] What is the canonical name? (Leading candidate: **Tag**)
+- [ ] What is the canonical name? (Current working name: **Chalk** — confirm trademark availability)
 - [ ] How are annotations stored when a page's URL includes dynamic query parameters?
 - [ ] What is the policy for pages behind authentication (private pages, paywalled content)?
 - [ ] How does the vote-to-collapse threshold get set — global default or per-page-moderator-controlled?
@@ -346,7 +346,7 @@ Users currently go off-page to Reddit threads or Discord servers to discuss web 
 
 ## 14. Suggested Next Steps
 
-1. Validate the name — check trademark availability for **Tag** (likely contested) and top alternatives
+1. Validate the name — check trademark availability for **Chalk** and confirm no conflicts
 2. Spike the browser extension — confirm the overlay + DOM anchoring approach is technically sound
 3. Define the data model — annotation schema, URL normalization rules, threading model
 4. Draft the Terms of Service with the legal defense framing from Section 8.1
