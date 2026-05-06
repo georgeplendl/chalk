@@ -5,6 +5,7 @@ export default defineConfig({
     name: 'Chalk',
     description: 'Draw on any webpage. See what others left behind.',
     version: '0.0.1',
+    action: { default_title: 'Toggle Chalk' },
     permissions: ['storage', 'activeTab'],
     host_permissions: ['<all_urls>'],
   },
