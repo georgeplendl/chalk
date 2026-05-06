@@ -1,7 +1,7 @@
 # Product Requirements Document
 ## Tag — A Social Graffiti Layer for the Web
 
-**Version:** 0.1 (Draft)
+**Version:** 0.2 (Draft)
 **Date:** 2026-05-06
 **Status:** Discovery
 
@@ -215,6 +215,19 @@ Tag's extension never modifies the actual website. It is a visual overlay render
 - Don't build AI image classification as the primary defense — too expensive, too slow, too error-prone at launch
 - Be honest in the ToS: this is a user-generated, community-moderated platform
 
+### 8.8 Community Brand Strategy (Lessons from Dissenter)
+Gab's Dissenter was technically identical to Tag's core concept — URL-based annotations on any webpage, anonymous-first, upvote/downvote. It launched in February 2019 and was pulled from Chrome and Firefox stores within six weeks. The cause of death was not technical. It was community composition.
+
+Because Dissenter launched under Gab's brand (a known far-right platform), it attracted extremists first. Hate speech, racism, and targeted harassment flooded the comment sections before any mainstream users arrived. The product never recovered from that first-mover audience. Chrome and Mozilla both cited hate speech policy violations.
+
+**What this means for Tag:**
+
+- **Brand neutrality is a survival requirement.** Tag must not position itself as a free speech platform, a censorship-free zone, or any framing that signals to bad-faith actors that this is their place. Those words are a bat signal. The product's identity should be playful, creative, and fun — graffiti art, not political speech.
+- **Seed the right community first.** The first 1,000 users shape the culture. Identify artists, meme creators, and playful internet communities to onboard early — not ideological movements.
+- **Public-facing content must be defensible.** The trending feed, the homepage, and any curated content shown to new users must represent the product at its best. One viral screenshot of extreme content will define press coverage.
+- **Moderation is a product feature, not a political stance.** Frame it as keeping the platform fun and worth using, not as ideological enforcement. Rules should read like a skate park's rules — no blood, no politics, keep it creative.
+- **Proactive not reactive.** Dissenter had no moderation infrastructure when it launched. Tag should have report flows, collapse thresholds, and a small trusted moderator seed group active on day one — before launch, not after the first incident.
+
 ---
 
 ## 9. Non-Functional Requirements
@@ -249,10 +262,47 @@ Tag's extension never modifies the actual website. It is a visual overlay render
 - **Launch browser:** Chrome first due to market share; Manifest V3 compliance required
 - **Team:** Assumed small founding team; scope is deliberately constrained for MVP
 - **Anonymity:** Platform must function without any account — this is a product promise to the core audience
+- **Chrome Web Store risk (critical):** Google and Mozilla can remove the extension from their stores without appeal. Dissenter was pulled within 6 weeks of launch. Tag must maintain a direct-download / sideload path (self-hosted .crx / .xpi) as a fallback distribution channel from day one, so a store ban is a setback rather than a kill shot. Keep store policy compliance under active review.
 
 ---
 
-## 12. Open Questions
+## 12. Competitive Landscape & Prior Art
+
+### 12.1 Dissenter by Gab — Closest Predecessor (Defunct)
+
+| Attribute | Dissenter | Tag |
+|---|---|---|
+| Concept | URL-based comment sidebar on any webpage | URL-based annotation canvas on any webpage |
+| Launch | February 2019 | TBD |
+| Anonymous | Yes (default) | Yes (default) |
+| Accounts | Optional (linked to Gab) | Optional (standalone) |
+| Voting | Upvote only | Upvote + downvote |
+| Content types | Text comments only | Drawing, text, stickers, voice |
+| Moderation | None | Community-first with moderators |
+| Store status | Banned from Chrome + Firefox (April 2019) | N/A |
+| Current status | Dead | — |
+
+**Why it failed:** Gab's brand attracted extremists as first-mover users. No moderation infrastructure meant hate speech dominated before mainstream users arrived. Chrome and Firefox both pulled the extension citing hate speech policy violations within six weeks of launch. Gab forked the Brave browser to survive, but that browser is now unmaintained and a security liability.
+
+**What to copy:** URL-as-thread-ID is the right data model. No website integration required is the right approach. Anonymous-first is the right identity model.
+
+**What to avoid:** Political/ideological brand positioning. No moderation at launch. Complete dependency on browser stores for distribution. Account system tied to a controversial parent platform.
+
+### 12.2 Hypothesis — Academic Web Annotation (Active)
+
+A well-funded, serious annotation tool used by universities and researchers. Text-highlight + comment model, account required, no drawing, no social/voting layer. Not aimed at general consumers. Proves the technical model is sound and there is real demand for web annotation. Not a direct competitor for Tag's audience.
+
+### 12.3 Genius — Annotation on Text Content (Active, Niche)
+
+Started as rap lyric annotation, expanded to web pages. Text-only, tied to specific content types, requires publisher buy-in for best experience. Has a proven community and karma model. Demonstrates that annotation communities can sustain long-term. Also was briefly in legal conflict with Google over injecting content into search results — relevant precedent for Tag to understand.
+
+### 12.4 Reddit / Discord — Indirect Competitors
+
+Users currently go off-page to Reddit threads or Discord servers to discuss web content. Tag's value proposition is eliminating that context switch. These are cultural reference points for Tag's audience, not direct competitors.
+
+---
+
+## 13. Open Questions
 
 - [ ] What is the canonical name? (Leading candidate: **Tag**)
 - [ ] How are annotations stored when a page's URL includes dynamic query parameters?
@@ -266,7 +316,7 @@ Tag's extension never modifies the actual website. It is a visual overlay render
 
 ---
 
-## 13. Suggested Next Steps
+## 14. Suggested Next Steps
 
 1. Validate the name — check trademark availability for **Tag** (likely contested) and top alternatives
 2. Spike the browser extension — confirm the overlay + DOM anchoring approach is technically sound
