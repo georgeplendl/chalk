@@ -57,10 +57,13 @@ These are the minimum features required for a useful first release.
 - Injected overlay canvas that sits on top of any webpage
 - Non-destructive — never modifies the actual site, only the user's local view
 - Toggle on/off with a hotkey or toolbar button
+- Both the extension and the userscript (see 5.7) share the same backend API — they are two clients, not two products
 
 ### 5.2 Page Tagging Notification
-- When a user navigates to a URL that has existing annotations, a badge or toast notification appears: *"This page has been tagged — X annotations"*
+- When a user navigates to a URL that has existing annotations, a notification appears: *"This page has been tagged — X annotations"*
 - User can click to reveal the annotation layer
+- **Extension:** notification appears as a badge on the toolbar icon plus an in-page toast
+- **Userscript:** in-page banner injected at page load (same experience, no toolbar badge)
 
 ### 5.3 Drawing Tools
 - Freehand draw (brush tool with size + color controls)
@@ -84,6 +87,27 @@ These are the minimum features required for a useful first release.
 - **Optional accounts** — username + persistent identity (no real name required)
 - Verified accounts get a badge and boosted default reach in sort ranking
 - Persistent anonymous sessions via local token (no forced login)
+
+### 5.7 Distribution & Resilience
+Tag is distributed through multiple channels so that no single gatekeeper can kill access. Dissenter was destroyed in six weeks because it had one distribution path. Tag will have four:
+
+| Channel | How to get it | Censor resistance |
+|---|---|---|
+| **Chrome Web Store** | One-click install | Low — Google can pull it |
+| **Firefox Add-ons** | One-click install | Low — Mozilla can pull it |
+| **Direct sideload** | Download .crx / .xpi from tag's own site | Medium — requires manual install, works as long as site is up |
+| **Userscript** | Install via Tampermonkey / Violentmonkey from GitHub raw URL or Greasy Fork | High — no central store, self-distributing |
+
+**Userscript specifics:**
+- Delivered as a single `.user.js` file with `@match *://*/*` to run on all pages
+- Compatible with Tampermonkey (Chrome, Firefox, Edge, Safari), Violentmonkey (Chrome, Firefox), and Greasemonkey (Firefox)
+- Uses `GM_xmlhttpRequest` for API calls to bypass CORS restrictions without browser extension permissions
+- Uses `GM_getValue` / `GM_setValue` for local session storage
+- Auto-updates via `@updateURL` and `@downloadURL` metadata — Tag controls its own update delivery without going through a store review process
+- Hosted on GitHub (raw URL) and Greasy Fork; self-hosted mirror as backup
+- Feature parity with the extension except for the browser toolbar badge (in-page banner substitutes)
+
+**Userscript is the censorship fallback.** If the extension is pulled from stores, users are directed to install the userscript. The entire product keeps running.
 
 ---
 
@@ -262,7 +286,7 @@ Because Dissenter launched under Gab's brand (a known far-right platform), it at
 - **Launch browser:** Chrome first due to market share; Manifest V3 compliance required
 - **Team:** Assumed small founding team; scope is deliberately constrained for MVP
 - **Anonymity:** Platform must function without any account — this is a product promise to the core audience
-- **Chrome Web Store risk (critical):** Google and Mozilla can remove the extension from their stores without appeal. Dissenter was pulled within 6 weeks of launch. Tag must maintain a direct-download / sideload path (self-hosted .crx / .xpi) as a fallback distribution channel from day one, so a store ban is a setback rather than a kill shot. Keep store policy compliance under active review.
+- **Chrome Web Store risk (critical):** Google and Mozilla can remove the extension from their stores without appeal. Dissenter was pulled within 6 weeks of launch. Tag mitigates this through a four-channel distribution strategy (store → sideload → userscript → Greasy Fork). The userscript is the highest-resilience fallback — it requires no store approval, updates are self-hosted, and it works on any browser with Tampermonkey or Violentmonkey installed. A store ban should be a setback, not a kill shot.
 
 ---
 
@@ -313,6 +337,10 @@ Users currently go off-page to Reddit threads or Discord servers to discuss web 
 - [ ] Should anonymous users be able to buy Spray Can credits without an account?
 - [ ] What is the minimum viable moderation team size at launch?
 - [ ] How is the "founding moderator" of a page verified or disputed?
+- [ ] Should the userscript be developed in parallel with the extension at MVP, or as a fast-follow after extension launch?
+- [ ] Does `GM_xmlhttpRequest` cover all API call patterns needed, or are there edge cases requiring a different approach?
+- [ ] What is the fallback if Greasy Fork also removes the userscript listing? (GitHub raw URL as final fallback — document this for users proactively)
+- [ ] Should the userscript and extension share a codebase (compiled from the same source) or be maintained separately?
 
 ---
 
