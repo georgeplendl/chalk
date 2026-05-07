@@ -60,7 +60,10 @@ export default defineContentScript({
     }
 
     function setOverlayVisible(visible: boolean) {
-      if (containerEl) containerEl.style.pointerEvents = visible ? 'all' : 'none';
+      if (containerEl) {
+        containerEl.style.display = visible ? 'block' : 'none';
+        containerEl.style.pointerEvents = visible ? 'all' : 'none';
+      }
       if (toolbarHostEl) toolbarHostEl.style.display = visible ? 'block' : 'none';
     }
 
