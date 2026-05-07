@@ -3,4 +3,5 @@ node_modules/
 .wxt/
 dist/
 *.zip
+!releases/*.zip
 .env

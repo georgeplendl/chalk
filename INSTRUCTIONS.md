@@ -6,7 +6,7 @@
 
 ## Step 1 — Get the file
 
-Download `chalk-extension-0.0.1-chrome.zip` from the link George sent you.
+Download `chalk-extension-0.1.0-chrome.zip` from the link George sent you.
 
 ## Step 2 — Unzip
 
