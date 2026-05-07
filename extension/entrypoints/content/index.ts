@@ -56,6 +56,15 @@ export default defineContentScript({
 
     function deactivate() {
       isActive = false;
+      // Exit any active text editing first so the save fires before we hide
+      if (canvas) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const active = canvas.getActiveObject() as any;
+        if (active?.isEditing) {
+          active.exitEditing();
+          canvas.discardActiveObject();
+        }
+      }
       setOverlayVisible(false);
     }
 
@@ -309,7 +318,7 @@ export default defineContentScript({
             user-select: none;
             white-space: nowrap;
           }
-          .vdivider { width: 1px; height: 24px; background: #d7d7d7; flex-shrink: 0; }
+          .divider { height: 1px; width: 29px; background: #d7d7d7; flex-shrink: 0; }
           .logo {
             display: flex; align-items: center; gap: 5px;
             padding: 0 4px;
@@ -326,7 +335,7 @@ export default defineContentScript({
           }
           .tool-btn svg { display: block; stroke: #333; transition: stroke 0.1s; }
           .tool-btn:hover { background: #e0e0e0; }
-          .tool-btn.active { background: #111; border-color: #111; }
+          .tool-btn.active { background: #000; border-color: #000; }
           .tool-btn.active svg { stroke: #fff; }
           .swatches { display: flex; flex-direction: row; align-items: center; gap: 4px; }
           .swatch {
@@ -334,7 +343,7 @@ export default defineContentScript({
             cursor: pointer; border: 2px solid transparent;
             flex-shrink: 0; transition: border-color 0.1s;
           }
-          .swatch.active { border-color: #333; box-shadow: 0 0 0 2px #fff inset; }
+          .swatch.active { border-color: #000; box-shadow: 0 0 0 2px #fff inset; }
           .size {
             height: 32px; border-radius: 6px; border: 1px solid #ddd;
             background: #ebebeb; cursor: pointer; color: #57595a;
@@ -343,7 +352,7 @@ export default defineContentScript({
             transition: background 0.1s; flex-shrink: 0;
             font-family: system-ui, sans-serif;
           }
-          .size.active { background: #111; color: #fff; border-color: #111; }
+          .size.active { background: #000; color: #fff; border-color: #000; }
           .size-s { font-size: 11px; font-weight: 500; }
           .size-m { font-size: 14px; font-weight: 400; }
           .size-l { font-size: 20px; font-weight: 400; line-height: 1; }
@@ -366,7 +375,7 @@ export default defineContentScript({
             </svg>
             Chalk
           </div>
-          <div class="vdivider"></div>
+          <div class="divider"></div>
           <button class="tool-btn active" id="btn-draw" title="Draw">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M9.06 11.9l8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"/>
@@ -380,11 +389,11 @@ export default defineContentScript({
               <line x1="12" x2="12" y1="4" y2="20"/>
             </svg>
           </button>
-          <div class="vdivider"></div>
+          <div class="divider"></div>
           <div class="swatches" id="swatches"></div>
-          <div class="vdivider"></div>
+          <div class="divider"></div>
           ${SIZES.map(s => `<button class="size${s === currentSize ? ' active' : ''} size-${s === 2 ? 's' : s === 4 ? 'm' : 'l'}" data-size="${s}">${s === 2 ? 'Small' : s === 4 ? 'Medium' : 'Large'}</button>`).join('')}
-          <div class="vdivider"></div>
+          <div class="divider"></div>
           <button class="close-btn" id="btn-close" title="Close">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
