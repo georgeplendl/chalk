@@ -171,7 +171,7 @@ export default defineContentScript({
 
       // Text placement
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      canvas.on('mouse:down', async (e: any) => {
+      canvas.on('mouse:down', (e: any) => {
         if (currentTool !== 'text' || isEditingText || !canvas || !fab) return;
         const pointer = canvas.getPointer(e.e);
         const text = new fab.IText('', {
@@ -187,26 +187,30 @@ export default defineContentScript({
         canvas.setActiveObject(text);
         isEditingText = true;
         text.enterEditing();
+      });
 
-        text.on('editing:exited', async () => {
-          isEditingText = false;
-          const content = (text.text ?? '').trim();
-          if (content) {
-            text.set({ selectable: false, evented: false, hasControls: false });
-            canvas?.renderAll();
-            const token = await getOrCreateSessionToken();
-            const row = await saveAnnotation({
-              url: normalizeUrl(window.location.href),
-              data: wrapWithDimensions(text.toJSON() as Record<string, unknown>),
-              type: 'text',
-              session_token: token,
-            });
-            if (row) loadedRows.push(row);
-            annotationCount++;
-          } else {
-            canvas?.remove(text);
-          }
-        });
+      // Save text when editing ends (canvas-level event fires more reliably than object-level)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      canvas.on('text:editing:exited', async (e: any) => {
+        isEditingText = false;
+        const text = e.target;
+        if (!text) return;
+        const content = (text.text ?? '').trim();
+        if (content) {
+          text.set({ selectable: false, evented: false, hasControls: false });
+          canvas?.renderAll();
+          const token = await getOrCreateSessionToken();
+          const row = await saveAnnotation({
+            url: normalizeUrl(window.location.href),
+            data: wrapWithDimensions(text.toJSON() as Record<string, unknown>),
+            type: 'text',
+            session_token: token,
+          });
+          if (row) loadedRows.push(row);
+          annotationCount++;
+        } else {
+          canvas?.remove(text);
+        }
       });
 
       // On resize: resize the canvas and re-render stored annotations with new ratios
