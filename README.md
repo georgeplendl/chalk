@@ -2,7 +2,33 @@
 
 Draw on any webpage. See what others left behind.
 
-Chalk is a Chrome extension that lets you annotate the web with freehand drawings and text. Annotations are shared — anyone with Chalk installed sees what you draw on the same URL.
+Chalk is a Chrome extension that layers a shared drawing canvas over any website. Freehand strokes, text annotations, and color — all stored by URL and visible to anyone else running Chalk.
+
+## Features
+
+**Drawing**
+- Freehand brush with three brush sizes (Small, Medium, Large)
+- 6-color palette — black, red, green, blue, orange, white
+- Text tool — click anywhere on the page to place and type
+
+**Keyboard shortcuts**
+| Key | Action |
+|-----|--------|
+| `P` | Paintbrush |
+| `T` | Text tool |
+| `Esc` | Deactivate current tool (restores page scroll) |
+| `1` – `6` | Select color swatch |
+
+**Shared annotations**
+- Everything saved to Supabase by canonical URL
+- Anyone with Chalk installed sees what you draw on the same page
+- Anonymous by default — no account required
+
+**UX**
+- Toolbar animates in from the bottom on open; fades out on close
+- Annotations stagger fade-in on load; fade out smoothly on close
+- Re-opening Chalk fades annotations back in
+- Escape deactivates your tool without closing the overlay, so you can scroll freely then re-enable drawing
 
 ## Install (for testers)
 
@@ -30,11 +56,15 @@ Load the extension in Chrome: `chrome://extensions` → Enable Developer mode �
 ## Release
 
 ```bash
-npm run zip            # outputs to .output/chalk-extension-x.x.x-chrome.zip
+# 1. Bump version in extension/package.json and extension/wxt.config.ts
+# 2. Build and zip
+npm run zip
+# 3. Copy to releases/
+cp .output/chalk-extension-x.x.x-chrome.zip releases/
 ```
 
-Copy the zip to `extension/releases/` and bump the version in `package.json` and `wxt.config.ts` before each release.
+See [CHANGELOG.md](CHANGELOG.md) for version history.
 
 ## Status
 
-Early alpha — shared with a small group of testers.
+Early alpha — v0.1.22, shared with a small group of testers.
