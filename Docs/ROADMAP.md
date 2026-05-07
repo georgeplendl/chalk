@@ -21,6 +21,14 @@ The core loop works: install → draw on a page → someone else installs → vi
 
 ## Up Next
 
+### API security (pre-launch blocker)
+The Supabase anon key is embedded in the extension JS — anyone who unpacks the zip can hit the REST API directly and insert arbitrary annotations without the extension. Must be addressed before Chrome Web Store submission or any wide distribution.
+
+Options (pick one):
+- **Supabase Edge Function** — requests proxy through a serverless function that validates a secret header the extension sends; anon key stays server-side
+- **Rate limiting** — cap inserts per session token per time window
+- **Own backend API** — extension talks to our server, server holds the service role key
+
 ### Chrome Web Store submission
 Move off manual zip sharing into real distribution. Biggest unlock for scale.
 
