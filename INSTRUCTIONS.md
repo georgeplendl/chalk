@@ -6,11 +6,11 @@
 
 ## Step 1 — Get the file
 
-Download `chalk-extension-0.1.0-chrome.zip` from the link George sent you.
+Download the latest zip from the [`extension/releases/`](extension/releases/) folder in this repo. Grab the file with the highest version number (e.g. `chalk-extension-0.1.2-chrome.zip`).
 
 ## Step 2 — Unzip
 
-Right-click the zip file and extract it. You'll get a folder called `chalk-extension-0.0.1-chrome`. Put it somewhere permanent — your Documents folder works well. Chrome needs the folder to stay in place, so don't delete it after installing.
+Right-click the zip file and extract it. You'll get a folder like `chalk-extension-0.1.2-chrome`. Put it somewhere permanent — your Documents folder works well. Chrome needs the folder to stay in place, so don't delete it after installing.
 
 ## Step 3 — Open Chrome extensions
 
@@ -22,7 +22,7 @@ Toggle **Developer mode** on using the switch in the top-right corner of the pag
 
 ## Step 5 — Load the extension
 
-Click **Load unpacked**, then select the `chalk-extension-0.0.1-chrome` folder from Step 2.
+Click **Load unpacked**, then select the folder you extracted in Step 2.
 
 Chalk will appear in your extensions list. To keep it handy, pin it to your toolbar: click the puzzle piece icon in the top-right of Chrome, find Chalk, and click the pin.
 
