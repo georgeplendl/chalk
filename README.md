@@ -1,13 +1,21 @@
+![Chalk — Draw on any webpage. See what others left behind.](Assets/chalk-graphic.png)
+
 # Chalk
 
-Draw on any webpage. See what others left behind.
+Chalk is a Chrome extension that layers a shared drawing canvas over any website. Leave freehand strokes, text, and color on top of any page — and see what others have left behind on the same URL.
 
-Chalk is a Chrome extension that layers a shared drawing canvas over any website. Freehand strokes, text annotations, and color — all stored by URL and visible to anyone else running Chalk.
+## How it works
+
+1. Install Chalk and visit any webpage
+2. Click the Chalk icon in your toolbar to activate the overlay
+3. Pick a color and brush size, then draw directly on the page
+4. Close Chalk — your marks are saved
+5. Anyone else with Chalk installed will see what you drew when they visit the same URL
 
 ## Features
 
 **Drawing**
-- Freehand brush with three brush sizes (Small, Medium, Large)
+- Freehand brush with three sizes (Small, Medium, Large)
 - 6-color palette — black, red, green, blue, orange, white
 - Text tool — click anywhere on the page to place and type
 
@@ -20,15 +28,13 @@ Chalk is a Chrome extension that layers a shared drawing canvas over any website
 | `1` – `6` | Select color swatch |
 
 **Shared annotations**
-- Everything saved to Supabase by canonical URL
-- Anyone with Chalk installed sees what you draw on the same page
-- Anonymous by default — no account required
+- Everything saved by canonical URL — collaborative across all users
+- Anonymous by default, no account required
 
 **UX**
 - Toolbar animates in from the bottom on open; fades out on close
 - Annotations stagger fade-in on load; fade out smoothly on close
-- Re-opening Chalk fades annotations back in
-- Escape deactivates your tool without closing the overlay, so you can scroll freely then re-enable drawing
+- Escape deactivates your tool without closing the overlay so you can scroll freely
 
 ## Install (for testers)
 
