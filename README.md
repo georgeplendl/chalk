@@ -16,25 +16,21 @@ Chalk is a Chrome extension that layers a shared drawing canvas over any website
 
 **Drawing**
 - Freehand brush with three sizes (Small, Medium, Large)
-- 6-color palette — black, red, green, blue, orange, white
 - Text tool — click anywhere on the page to place and type
+- Multiple color swatches to choose from (black, red, green, blue, orange, white)
+- More tools coming soon! (Shapes, Eraser, Arrows, Highlighting w/ Annotations, and more!)
 
 **Keyboard shortcuts**
 | Key | Action |
 |-----|--------|
 | `P` | Paintbrush |
 | `T` | Text tool |
-| `Esc` | Deactivate current tool (restores page scroll) |
 | `1` – `6` | Select color swatch |
+| `Esc` | Deactivate current tool (restores page scroll) |
 
 **Shared annotations**
 - Everything saved by canonical URL — collaborative across all users
 - Anonymous by default, no account required
-
-**UX**
-- Toolbar animates in from the bottom on open; fades out on close
-- Annotations stagger fade-in on load; fade out smoothly on close
-- Escape deactivates your tool without closing the overlay so you can scroll freely
 
 ## Install (for testers)
 
