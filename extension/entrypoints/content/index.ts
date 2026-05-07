@@ -296,6 +296,9 @@ export default defineContentScript({
         transform: 'translateX(-50%)',
         zIndex: '2147483647',
         display: 'none',
+        backdropFilter: 'blur(8px)',
+        webkitBackdropFilter: 'blur(8px)',
+        borderRadius: '12px',
       });
 
       const shadow = toolbarHostEl.attachShadow({ mode: 'open' });
@@ -305,8 +308,6 @@ export default defineContentScript({
           *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
           .bar {
             background: rgba(255,255,255,0.9);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
             border: 1px solid #ddd;
             border-radius: 12px;
             padding: 8px;
@@ -337,23 +338,23 @@ export default defineContentScript({
           .tool-btn.active svg { stroke: #fff; }
           .swatches { display: flex; flex-direction: row; align-items: center; gap: 4px; }
           .swatch {
-            width: 24px; height: 24px; border-radius: 50%;
+            width: 30px; height: 30px; border-radius: 50%;
             cursor: pointer; border: 2px solid transparent;
             flex-shrink: 0; transition: border-color 0.1s;
           }
           .swatch.active { border-color: #000; box-shadow: 0 0 0 2px #fff inset; }
           .size {
-            height: 32px; border-radius: 6px; border: 1px solid #ddd;
+            border-radius: 6px; border: 1px solid #ddd;
             background: #ebebeb; cursor: pointer; color: #57595a;
-            padding: 0 10px;
+            padding: 8px;
             display: flex; align-items: center; justify-content: center;
             transition: background 0.1s; flex-shrink: 0;
-            font-family: system-ui, sans-serif;
+            font-family: system-ui, sans-serif; line-height: 1;
           }
           .size.active { background: #000; color: #fff; border-color: #000; }
           .size-s { font-size: 11px; font-weight: 500; }
           .size-m { font-size: 14px; font-weight: 400; }
-          .size-l { font-size: 20px; font-weight: 400; line-height: 1; }
+          .size-l { font-size: 20px; font-weight: 400; padding: 8px 12px; }
           .close-btn {
             width: 40px; height: 40px;
             border-radius: 8px; border: none;
