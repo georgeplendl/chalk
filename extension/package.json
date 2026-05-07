@@ -1,6 +1,6 @@
 {
   "name": "chalk-extension",
-  "version": "0.1.15",
+  "version": "0.1.22",
   "private": true,
   "type": "module",
   "scripts": {

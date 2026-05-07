@@ -1,12 +1,28 @@
 # Chalk — Roadmap
 
-## Status: v0 MVP complete
+## Status: v0 MVP shipped — polish in progress (v0.1.21)
 
 The core loop works: install → draw on a page → someone else installs → visits the same URL → sees the drawing.
 
 ---
 
+## Recently completed
+
+- ✅ Toolbar redesigned to match Figma — horizontal, bottom-center, frosted glass, Lucide icons
+- ✅ Chalk wordmark SVG logo in toolbar
+- ✅ Keyboard shortcuts: **P** (paintbrush), **T** (text), **Esc** (deactivate), **1–6** (colors)
+- ✅ Escape deactivates tool and restores page scroll without closing the overlay
+- ✅ Annotations fade in with stagger on load; fade out on close
+- ✅ Toolbar animates in/out with spring easing
+- ✅ Text annotation save-on-close bug fixed
+- ✅ Swatch active state fixed (data-color comparison, box-shadow ring)
+
+---
+
 ## Up Next
+
+### Chrome Web Store submission
+Move off manual zip sharing into real distribution. Biggest unlock for scale.
 
 ### Notification badge
 Show annotation count when visiting a page that's already been chalked.
@@ -14,11 +30,8 @@ Show annotation count when visiting a page that's already been chalked.
 - In-page toast: *"This page has been chalked — X annotations"*
 - Count is already tracked in the extension, just needs wiring
 
-### Report button
-Flag an annotation for review. Backend schema and helper already exist, just needs a UI.
-
-### Chrome Web Store submission
-Move off manual zip sharing into real distribution. Biggest unlock for scale.
+### Report button UI
+Backend schema and `reportAnnotation()` helper already exist — just needs a UI surface in the toolbar or on annotation objects.
 
 ### Eraser tool
 Remove strokes from the canvas. Low-effort addition to the toolbar.

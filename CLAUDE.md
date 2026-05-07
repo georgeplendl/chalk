@@ -34,6 +34,10 @@ README.md                  # GitHub readme
 CLAUDE.md                  # this file
 ```
 
+## Changelog
+
+`CHANGELOG.md` in the repo root follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format. **Always update it before committing** — add a new version block at the top covering all changes since the last commit, using sections: Added, Changed, Fixed, Removed. Never commit without updating the changelog first.
+
 ## Release workflow
 
 1. Bump version in **both** `extension/package.json` and `extension/wxt.config.ts`

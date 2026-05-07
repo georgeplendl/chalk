@@ -49,10 +49,22 @@ export default defineContentScript({
       const tag = target?.tagName?.toLowerCase();
       if (tag === 'input' || tag === 'textarea' || target?.isContentEditable) return;
 
-      if (e.key === 'Escape')          setToolFromKey('none');
-      else if (e.key === 'p' || e.key === 'P') setToolFromKey('draw');
-      else if (e.key === 't' || e.key === 'T') setToolFromKey('text');
+      if (e.key === 'Escape')                    setToolFromKey('none');
+      else if (e.key === 'p' || e.key === 'P')   setToolFromKey('draw');
+      else if (e.key === 't' || e.key === 'T')   setToolFromKey('text');
+      else {
+        const colorIndex = parseInt(e.key) - 1;
+        if (colorIndex >= 0 && colorIndex < COLORS.length) selectColor(COLORS[colorIndex]);
+      }
     }, true);
+
+    function selectColor(color: string) {
+      currentColor = color;
+      if (canvas?.freeDrawingBrush) canvas.freeDrawingBrush.color = color;
+      toolbarHostEl?.shadowRoot?.querySelectorAll<HTMLElement>('.swatch').forEach(el => {
+        el.classList.toggle('active', el.dataset.color === color);
+      });
+    }
 
     // --- Message handler ---
 
@@ -79,8 +91,23 @@ export default defineContentScript({
         createCanvas();
         createToolbar();
         await loadAnnotations();
+      } else {
+        // Objects were faded to opacity 0 on last close — fade them back in
+        setOverlayVisible(true);
+        fadeInAnnotations();
+        return;
       }
       setOverlayVisible(true);
+    }
+
+    function fadeInAnnotations() {
+      if (!canvas) return;
+      const objects = canvas.getObjects();
+      objects.forEach((obj, i) => {
+        obj.set({ opacity: 0 });
+        setTimeout(() => animateOpacity(obj as any, 1, 400), Math.min(i * 50, 500));
+      });
+      canvas.renderAll();
     }
 
     function deactivate() {
@@ -94,7 +121,41 @@ export default defineContentScript({
           canvas.discardActiveObject();
         }
       }
-      setOverlayVisible(false);
+      // Fade out annotations and toolbar in parallel, then hide
+      Promise.all([fadeOutAnnotations(), fadeOutToolbar()]).then(() => setOverlayVisible(false));
+    }
+
+    function fadeOutAnnotations(): Promise<void> {
+      if (!canvas || canvas.getObjects().length === 0) return Promise.resolve();
+      const objects = canvas.getObjects();
+      const promises = objects.map(obj => animateOpacity(obj as any, 0, 220));
+      return Promise.all(promises).then(() => { canvas?.renderAll(); });
+    }
+
+    function fadeOutToolbar(): Promise<void> {
+      return new Promise(resolve => {
+        const bar = toolbarHostEl?.shadowRoot?.querySelector<HTMLElement>('.bar');
+        if (!bar) { resolve(); return; }
+        bar.style.animation = 'chalk-toolbar-out 0.2s ease-in both';
+        setTimeout(resolve, 200);
+      });
+    }
+
+    // rAF-based opacity animator — avoids Fabric.js animate API version quirks
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    function animateOpacity(obj: any, target: number, duration: number): Promise<void> {
+      return new Promise(resolve => {
+        const start = obj.opacity ?? (target === 0 ? 1 : 0);
+        const startTime = performance.now();
+        function step(now: number) {
+          const t = Math.min((now - startTime) / duration, 1);
+          obj.set({ opacity: start + (target - start) * t });
+          canvas?.renderAll();
+          if (t < 1) requestAnimationFrame(step);
+          else resolve();
+        }
+        requestAnimationFrame(step);
+      });
     }
 
     function setOverlayVisible(visible: boolean) {
@@ -102,7 +163,19 @@ export default defineContentScript({
         containerEl.style.display = visible ? 'block' : 'none';
         containerEl.style.pointerEvents = (visible && currentTool !== 'none') ? 'all' : 'none';
       }
-      if (toolbarHostEl) toolbarHostEl.style.display = visible ? 'block' : 'none';
+      if (toolbarHostEl) {
+        toolbarHostEl.style.display = visible ? 'block' : 'none';
+        if (visible) {
+          // Re-trigger the animation each time the toolbar shows
+          const bar = toolbarHostEl.shadowRoot?.querySelector<HTMLElement>('.bar');
+          if (bar) {
+            bar.style.animation = 'none';
+            // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+            bar.offsetHeight; // force reflow
+            bar.style.animation = '';
+          }
+        }
+      }
     }
 
     // --- Annotation data helpers ---
@@ -288,15 +361,30 @@ export default defineContentScript({
     async function renderAnnotations(rows: AnnotationRow[]) {
       if (!canvas || !fab) return;
       canvas.clear();
+
+      // Collect all objects first, added at opacity 0
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const objects: any[] = [];
       for (const row of rows) {
-        await renderAnnotation(row);
+        const obj = await buildAnnotationObject(row);
+        if (obj) {
+          obj.set({ opacity: 0, selectable: false, evented: false, hasControls: false, hasBorders: false });
+          canvas.add(obj);
+          objects.push(obj);
+        }
       }
       canvas.renderAll();
       applyBrush();
+
+      // Stagger fade-in: 50ms apart, capped so even large sets feel snappy
+      objects.forEach((obj, i) => {
+        const delay = Math.min(i * 50, 500);
+        setTimeout(() => { animateOpacity(obj, 1, 400); }, delay);
+      });
     }
 
-    async function renderAnnotation(row: AnnotationRow) {
-      if (!canvas || !fab) return;
+    async function buildAnnotationObject(row: AnnotationRow) {
+      if (!canvas || !fab) return null;
       try {
         const { fabricData, storedW, storedH } = parseAnnotationData(row.data);
         const currentW = canvas.width!;
@@ -306,11 +394,10 @@ export default defineContentScript({
         const scaled = scaleFabricData(fabricData, ratioX, ratioY);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const [obj] = (await fab.util.enlivenObjects([scaled as any])) as any[];
-        if (!obj) return;
-        obj.set({ selectable: false, evented: false, hasControls: false, hasBorders: false });
-        canvas.add(obj);
+        return obj ?? null;
       } catch (err) {
         console.warn('[Chalk] Could not load annotation:', err);
+        return null;
       }
     }
 
@@ -336,6 +423,14 @@ export default defineContentScript({
       shadow.innerHTML = `
         <style>
           *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+          @keyframes chalk-toolbar-in {
+            from { opacity: 0; transform: translateY(20px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0)   scale(1);    }
+          }
+          @keyframes chalk-toolbar-out {
+            from { opacity: 1; transform: translateY(0)   scale(1);    }
+            to   { opacity: 0; transform: translateY(12px) scale(0.97); }
+          }
           .bar {
             background: rgba(255,255,255,0.9);
             border: 1px solid #ddd;
@@ -348,6 +443,7 @@ export default defineContentScript({
             box-shadow: 0 4px 24px rgba(0,0,0,0.12);
             user-select: none;
             white-space: nowrap;
+            animation: chalk-toolbar-in 0.35s cubic-bezier(0.34, 1.4, 0.64, 1) both;
           }
           .divider { height: 1px; width: 29px; background: #d7d7d7; flex-shrink: 0; }
           .logo {
@@ -437,13 +533,7 @@ export default defineContentScript({
         s.dataset.color = color;
         if (color === '#f5f5f5') s.style.border = '2px solid #ccc';
         s.title = color;
-        s.addEventListener('click', () => {
-          currentColor = color;
-          shadow.querySelectorAll<HTMLElement>('.swatch').forEach(el => {
-            el.classList.toggle('active', el.dataset.color === color);
-          });
-          if (canvas?.freeDrawingBrush) canvas.freeDrawingBrush.color = color;
-        });
+        s.addEventListener('click', () => selectColor(color));
         swatchContainer.appendChild(s);
       }
 

@@ -1,9 +1,9 @@
 # Product Requirements Document
 ## Chalk — A Social Graffiti Layer for the Web
 
-**Version:** 0.4 (Draft)
+**Version:** 0.5 (Draft)
 **Date:** 2026-05-06
-**Status:** Discovery
+**Status:** Active development — v0 shipped, polish ongoing
 
 ---
 
@@ -50,28 +50,34 @@ A browser extension that overlays a collaborative, Reddit-style social canvas on
 
 The goal of v0 is to validate one core loop: **install → draw on a page → someone else installs → visits the same URL → sees the drawing.** Nothing else.
 
-### 5.1 Browser Extension
+### 5.1 Browser Extension ✅
 - Chrome only (Manifest V3)
 - Injected overlay canvas on any webpage
-- Toggle on/off with toolbar button
+- Toggle on/off with toolbar button (icon click, or Escape key to deactivate tool)
 - Non-destructive — never modifies the actual site, only the user's local view
 
-### 5.2 Drawing Tools
-- Freehand brush with size and color controls
-- Text tool — type anywhere on the page
-- Default color palette
+### 5.2 Drawing Tools ✅
+- Freehand brush with size (Small / Medium / Large) and color controls (6 swatches)
+- Text tool — click to place, type, click away to save
+- Keyboard shortcuts: P (brush), T (text), Esc (deactivate), 1–6 (colors)
 
-### 5.3 Annotation Storage & Retrieval
-- Annotations stored by canonical URL via a simple backend API
+### 5.3 Annotation Storage & Retrieval ✅
+- Annotations stored by canonical URL via Supabase REST API
 - Anyone visiting the same URL sees all annotations left by others
-- Page-relative coordinates (no DOM anchoring yet)
+- Page-relative coordinates with proportional scaling on viewport resize (no DOM anchoring yet)
+- Annotations fade in on load, fade out on close
 
-### 5.4 Identity
-- Anonymous only — persistent local token, no account required, no login
+### 5.4 Identity ✅
+- Anonymous only — persistent local token via `chrome.storage.local`, no account required, no login
 
-### 5.5 Moderation (Minimal)
-- Report button on any annotation
+### 5.5 Moderation (Minimal) ✅
+- Report button backend schema and helper implemented — UI pending
 - Reports go to a founder-monitored inbox — no automated processing
+
+### 5.6 Toolbar UX ✅
+- Redesigned horizontal toolbar at bottom-center of viewport, matching Figma design
+- Frosted glass background, Lucide SVG icons, Chalk wordmark logo
+- Animates in/out with spring easing on show/hide
 
 ---
 
